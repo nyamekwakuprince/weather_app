@@ -1,5 +1,8 @@
-
 import 'package:flutter/material.dart';
+
+import 'weather_codes.dart';
+import 'weather_models.dart';
+import 'weather_service.dart';
 
 void main() {
   runApp(const WeatherApp());
@@ -30,15 +33,222 @@ class WeatherHomePage extends StatefulWidget {
 }
 
 class _WeatherHomePageState extends State<WeatherHomePage> {
-  String _cityName = 'Accra, Ghana';
+  final WeatherService _weatherService = WeatherService();
 
-  void _searchCity(String value) {
-    final city = value.trim();
-    if (city.isEmpty) return;
+  String _cityName = '';
+  WeatherData? _weather;
+  bool _isLoading = false;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    // Load Accra's weather when the app opens.
+    _searchCity('Accra');
+  }
+
+  Future<void> _searchCity(String value) async {
+    final query = value.trim();
+    if (query.isEmpty) return;
 
     setState(() {
-      _cityName = city;
+      _isLoading = true;
+      _errorMessage = null;
     });
+
+    try {
+      final city = await _weatherService.getCityCoordinates(query);
+
+      if (city == null) {
+        if (!mounted) return;
+        setState(() {
+          _isLoading = false;
+          _errorMessage =
+              'City not found. Please check the spelling and try again.';
+        });
+        return;
+      }
+
+      final weather = await _weatherService.getWeather(
+        (city['latitude'] as num).toDouble(),
+        (city['longitude'] as num).toDouble(),
+      );
+
+      if (!mounted) return;
+      setState(() {
+        _cityName = '${city['name']}, ${city['country']}';
+        _weather = weather;
+        _isLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isLoading = false;
+        _errorMessage =
+            'Could not load the weather. Please check your internet connection and try again.';
+      });
+    }
+  }
+
+  String _formatHour(DateTime time) {
+    final hour = time.hour % 12 == 0 ? 12 : time.hour % 12;
+    final period = time.hour < 12 ? 'AM' : 'PM';
+    return '$hour $period';
+  }
+
+  Widget _buildErrorBanner(String message) {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: 20),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFEE2E2),
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          const Icon(Icons.error_outline, color: Color(0xFFB91C1C)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              message,
+              style: const TextStyle(color: Color(0xFF7F1D1D)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildWeatherCard(WeatherData weather) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [
+            Color(0xFF2563EB),
+            Color(0xFF1D4ED8),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(28),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(
+                Icons.location_on,
+                color: Colors.white70,
+                size: 20,
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _cityName,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 28),
+          Center(
+            child: Icon(
+              weatherIcon(weather.weatherCode),
+              color: const Color(0xFFFFD166),
+              size: 90,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Center(
+            child: Text(
+              '${weather.temperature.round()}\u00B0',
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 68,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+          Center(
+            child: Text(
+              weatherDescription(weather.weatherCode),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 22,
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              WeatherDetail(
+                icon: Icons.water_drop_outlined,
+                label: 'Humidity',
+                value: '${weather.humidity}%',
+              ),
+              WeatherDetail(
+                icon: Icons.air,
+                label: 'Wind',
+                value: '${weather.windSpeed.round()} km/h',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildContent() {
+    if (_isLoading) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final weather = _weather;
+    if (weather == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildWeatherCard(weather),
+        const SizedBox(height: 32),
+        const Text(
+          'Next 12 Hours',
+          style: TextStyle(
+            fontSize: 21,
+            fontWeight: FontWeight.bold,
+            color: Color(0xFF172554),
+          ),
+        ),
+        const SizedBox(height: 16),
+        SizedBox(
+          height: 145,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            children: weather.hourly.map((hour) {
+              return ForecastItem(
+                time: _formatHour(hour.time),
+                icon: weatherIcon(hour.weatherCode),
+                temperature: '${hour.temperature.round()}\u00B0',
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
   }
 
   @override
@@ -89,131 +299,9 @@ class _WeatherHomePageState extends State<WeatherHomePage> {
 
               const SizedBox(height: 28),
 
-              // Current weather card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(24),
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    colors: [
-                      Color(0xFF2563EB),
-                      Color(0xFF1D4ED8),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(28),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.location_on,
-                          color: Colors.white70,
-                          size: 20,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _cityName,
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
-                    const Center(
-                      child: Icon(
-                        Icons.wb_sunny_rounded,
-                        color: Color(0xFFFFD166),
-                        size: 90,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    const Center(
-                      child: Text(
-                        '29°',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 68,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                    const Center(
-                      child: Text(
-                        'Sunny',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 22,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      children: [
-                        WeatherDetail(
-                          icon: Icons.water_drop_outlined,
-                          label: 'Humidity',
-                          value: '65%',
-                        ),
-                        WeatherDetail(
-                          icon: Icons.air,
-                          label: 'Wind',
-                          value: '12 km/h',
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
+              if (_errorMessage != null) _buildErrorBanner(_errorMessage!),
 
-              const SizedBox(height: 32),
-
-              // Forecast section
-              const Text(
-                'Today’s Forecast',
-                style: TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF172554),
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              SizedBox(
-                height: 145,
-                child: ListView(
-                  scrollDirection: Axis.horizontal,
-                  children: const [
-                    ForecastItem(
-                      time: '12 PM',
-                      icon: Icons.wb_sunny_rounded,
-                      temperature: '30°',
-                    ),
-                    ForecastItem(
-                      time: '1 PM',
-                      icon: Icons.wb_sunny_rounded,
-                      temperature: '31°',
-                    ),
-                    ForecastItem(
-                      time: '2 PM',
-                      icon: Icons.cloud_rounded,
-                      temperature: '29°',
-                    ),
-                    ForecastItem(
-                      time: '3 PM',
-                      icon: Icons.cloud_queue_rounded,
-                      temperature: '28°',
-                    ),
-                  ],
-                ),
-              ),
+              _buildContent(),
             ],
           ),
         ),

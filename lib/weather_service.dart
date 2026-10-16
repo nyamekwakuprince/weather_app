@@ -1,6 +1,6 @@
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'weather_models.dart';
 
 class WeatherService {
   Future<Map<String, dynamic>?> getCityCoordinates(
@@ -40,5 +40,30 @@ class WeatherService {
       'latitude': city['latitude'],
       'longitude': city['longitude'],
     };
+  }
+
+  Future<WeatherData> getWeather(double latitude, double longitude) async {
+    final url = Uri.https(
+      'api.open-meteo.com',
+      '/v1/forecast',
+      {
+        'latitude': latitude.toString(),
+        'longitude': longitude.toString(),
+        'current':
+            'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m',
+        'hourly': 'temperature_2m,weather_code',
+        'timezone': 'auto',
+        'forecast_hours': '12',
+      },
+    );
+
+    final response = await http.get(url);
+
+    if (response.statusCode != 200) {
+      throw Exception('Could not load weather data.');
+    }
+
+    final data = jsonDecode(response.body) as Map<String, dynamic>;
+    return WeatherData.fromJson(data);
   }
 }
