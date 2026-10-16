@@ -64,7 +64,7 @@ class _WeatherHomePageState extends State<WeatherHomePage> {
         setState(() {
           _isLoading = false;
           _errorMessage =
-              'City not found. Please check the spelling and try again.';
+              'No city found for that search. Try a city name, for example Accra or London.';
         });
         return;
       }
@@ -286,7 +286,7 @@ class _WeatherHomePageState extends State<WeatherHomePage> {
                 textInputAction: TextInputAction.search,
                 onSubmitted: _searchCity,
                 decoration: InputDecoration(
-                  hintText: 'Search location...',
+                  hintText: 'Search for a city, e.g. Accra',
                   prefixIcon: const Icon(Icons.search),
                   filled: true,
                   fillColor: Colors.white,
