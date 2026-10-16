@@ -2,6 +2,12 @@
 
 A Flutter weather app that lets you search for a city and see its live weather conditions and the forecast for the next 12 hours. Built with Flutter and Dart, using the free Open-Meteo API.
 
+## Screenshots
+
+| Home | Another city | City not found |
+|------|--------------|----------------|
+| ![Home screen](screenshots/home.png) | ![London weather](screenshots/london.png) | ![Not found message](screenshots/not-found.png) |
+
 ## Features
 
 - Search for any city by name
@@ -35,9 +41,12 @@ lib/
   weather_service.dart  Talks to the Open-Meteo APIs
   weather_models.dart   Dart classes that hold the weather data
   weather_codes.dart    Turns weather codes into descriptions and icons
+test/
+  weather_test.dart     Automated tests for data parsing and weather codes
 tool/
   test_city_lookup.dart Terminal test for the city lookup
   test_weather.dart     Terminal test for the weather request
+screenshots/            Images used in this README
 ```
 
 ## Running the app
@@ -47,6 +56,12 @@ You need the Flutter SDK installed.
 ```
 flutter pub get
 flutter run -d chrome
+```
+
+To run the automated tests:
+
+```
+flutter test
 ```
 
 ## Current status
@@ -65,7 +80,7 @@ flutter run -d chrome
 - Multi-day forecast
 - Choose between Celsius and Fahrenheit
 - Remember the last searched city
-- Automated tests for the weather service and screen
+- Screen (widget) tests
 
 ## Credits
 
