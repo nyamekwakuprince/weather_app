@@ -22,9 +22,24 @@ class WeatherApp extends StatelessWidget {
   }
 }
 
-class WeatherHomePage extends StatelessWidget {
+class WeatherHomePage extends StatefulWidget {
   const WeatherHomePage({super.key});
-  
+
+  @override
+  State<WeatherHomePage> createState() => _WeatherHomePageState();
+}
+
+class _WeatherHomePageState extends State<WeatherHomePage> {
+  String _cityName = 'Accra, Ghana';
+
+  void _searchCity(String value) {
+    final city = value.trim();
+    if (city.isEmpty) return;
+
+    setState(() {
+      _cityName = city;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +73,8 @@ class WeatherHomePage extends StatelessWidget {
 
               // City search field
               TextField(
+                textInputAction: TextInputAction.search,
+                onSubmitted: _searchCity,
                 decoration: InputDecoration(
                   hintText: 'Search location...',
                   prefixIcon: const Icon(Icons.search),
@@ -90,17 +107,17 @@ class WeatherHomePage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Row(
+                    Row(
                       children: [
-                        Icon(
+                        const Icon(
                           Icons.location_on,
                           color: Colors.white70,
                           size: 20,
                         ),
-                        SizedBox(width: 6),
+                        const SizedBox(width: 6),
                         Text(
-                          'Accra, Ghana',
-                          style: TextStyle(
+                          _cityName,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.w600,
@@ -136,12 +153,9 @@ class WeatherHomePage extends StatelessWidget {
                         ),
                       ),
                     ),
-                    const SizedBox(height: 28),
-                    const Divider(color: Colors.white30),
                     const SizedBox(height: 12),
-                    const Row(
-                      mainAxisAlignment:
-                          MainAxisAlignment.spaceAround,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
                       children: [
                         WeatherDetail(
                           icon: Icons.water_drop_outlined,
