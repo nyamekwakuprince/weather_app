@@ -1,84 +1,72 @@
-# Weather App 🌦️
+# Weather App
 
-A weather application built with Flutter and Dart, designed to provide users with current weather conditions and forecasts for searched cities.
+A Flutter weather app that lets you search for a city and see its live weather conditions and the forecast for the next 12 hours. Built with Flutter and Dart, using the free Open-Meteo API.
 
-## Overview
+## Features
 
-The Weather App is a mobile application project focused on delivering a clean, intuitive, and responsive weather experience. The project uses Flutter for the user interface and is being developed to integrate live weather information from the Open-Meteo API.
+- Search for any city by name
+- Current temperature, weather condition, humidity and wind speed
+- Hourly forecast for the next 12 hours
+- Weather icons that match the conditions
+- Loading indicator while data is being fetched
+- Friendly messages when a city is not found or the internet request fails
 
-## Key Features
+## How it works
 
-- **Weather Dashboard:** A dedicated screen for presenting weather information.
-- **City Search:** Search for a city to view its weather conditions.
-- **Current Weather:** Display current temperature and weather conditions.
-- **Weather Details:** Present supporting information such as humidity and wind speed.
-- **Forecast:** Display forecast information in an easy-to-read layout.
-- **Responsive Interface:** A clean layout designed to adapt to different screen sizes.
-- **API Integration:** Retrieve weather information from the Open-Meteo API.
+1. The user types a city name and presses Enter.
+2. The app sends the name to the Open-Meteo **geocoding API**, which returns the city's coordinates.
+3. The app sends those coordinates to the Open-Meteo **forecast API**, which returns the weather as JSON.
+4. The JSON is converted into Dart classes (`WeatherData`, `HourlyForecast`).
+5. The screen updates with the real values.
 
-*Feature implementation is in progress. Features will be marked as completed after they have been implemented and tested.*
+## Technology
 
-## Technology Stack
+- **Flutter** and **Dart** for the app and interface
+- **Open-Meteo API** for geocoding and weather data (free, no API key needed)
+- **http** package for internet requests
+- **Git and GitHub** for version control
+- **Visual Studio Code** for development
 
-- **Flutter** — application UI and development framework
-- **Dart** — programming language
-- **Open-Meteo API** — planned weather data provider
-- **Git and GitHub** — version control and project management
-- **Visual Studio Code** — development environment
+## Project structure
 
-## Current Development Progress
+```
+lib/
+  main.dart             The screen, search field and forecast widgets
+  weather_service.dart  Talks to the Open-Meteo APIs
+  weather_models.dart   Dart classes that hold the weather data
+  weather_codes.dart    Turns weather codes into descriptions and icons
+tool/
+  test_city_lookup.dart Terminal test for the city lookup
+  test_weather.dart     Terminal test for the weather request
+```
 
-### Phase 1 — User Interface
-- Created the main weather screen.
-- Added the city search field design.
-- Created a weather information card.
-- Added humidity and wind information layouts.
-- Created a horizontal forecast layout.
-- Built reusable widgets for weather details and forecast items.
-- Applied styling, spacing, colours, and rounded corners.
+## Running the app
 
-**Current status:** Initial UI implemented. Weather values are currently sample data, and the search field is not yet connected to a weather service.
+You need the Flutter SDK installed.
 
-## Getting Started
+```
+flutter pub get
+flutter run -d chrome
+```
 
-### Prerequisites
-- Flutter SDK
-- Dart SDK (included with Flutter)
-- Visual Studio Code or another supported IDE
-- Google Chrome for running the current web prototype
+## Current status
 
-### Installation
+- Tested in Google Chrome.
+- Not yet tested on an Android emulator or a physical phone.
 
-1. Clone the repository.
-2. Open the project directory in your terminal.
-3. Install the project dependencies:
+## Known limitations
 
-   `flutter pub get`
+- If several cities share a name, the app uses the first match from the search.
+- The forecast covers the next 12 hours only. There is no multi-day forecast yet.
+- Temperatures are shown in degrees Celsius and wind speed in km/h.
 
-4. Run the application in Chrome:
+## Possible improvements
 
-   `flutter run -d chrome`
+- Multi-day forecast
+- Choose between Celsius and Fahrenheit
+- Remember the last searched city
+- Automated tests for the weather service and screen
 
-## Planned Improvements
+## Credits
 
-- Implement functional city search.
-- Integrate the Open-Meteo API.
-- Parse API responses and display live weather data.
-- Add loading indicators and error handling.
-- Display real forecast information.
-- Test the application and improve responsiveness.
-- Complete project documentation and screenshots.
-
-## Project Structure
-
-- `lib/main.dart` — application entry point and current UI implementation
-- `test/` — location for automated tests
-- `pubspec.yaml` — project configuration and dependencies
-
-## Development Approach
-
-The application is being developed incrementally. Each phase focuses on a specific set of features, followed by testing, documentation, and a version-control checkpoint.
-
-## Project Status
-
-**In development** — initial interface implemented; live weather integration and functional search are pending.
+Weather data by [Open-Meteo.com](https://open-meteo.com/).
